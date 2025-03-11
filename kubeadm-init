@@ -1,4 +1,4 @@
-
+see the orginal of below content at https://github.com/kloudvsol/K8s_class/blob/main/kubeadm_init
  Prepare Hostname, Firewall and SELinux
  
 # hostnamectl set-hostname master-node
@@ -9,16 +9,19 @@
 EOF
 -----------------
  #disable SElinux and update your firewall rules.
+# we need to disable SElinux(security-enhanced linux) during kubeadm init because SELinux enforces strict access controls that can interfere with Kubernetes' containerized workloads and networking
  
   setenforce 0
   sed -i --follow-symlinks 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/sysconfig/selinux
  reboot
+                    or simply go to vi /etc/sysconfig/selinux --------and disable the permissions
  # Disable Firewalld
  
 systemctl stop firewalld
 systemctl disable firewalld
  
-# Install the most recent Docker Engine package.
+# Install the most recent Docker Engine package. --------------here container runtaime (docker) is added, you can also opt for containerd,CRI-o,docker..etc
+# components like kubelet communicate with  the container runtime(here docker) to manage container lifecycle operations (start, stop, delete containers).
  sudo yum update -y
  sudo amazon-linux-extras install docker -y
  systemctl enable docker
@@ -86,15 +89,28 @@ systemctl enable  kubelet
 
 
  kubeadm init --control-plane-endpoint "192.168.0.0:6443" --upload-certs --pod-network-cidr=10.244.0.0/16
- 
- 
- 
 
- mkdir -p $HOME/.kube
+after executing the above command, copy the command in that output and run it on any number of worker node you desired to join in that cluster
+
+# Kubeadm: A lightweight tool for bootstrapping Kubernetes clusters. It sets up the control plane and worker nodes but relies on pre-provisioned infrastructure.
+
+# instead of kubeadm you can also use other tools for setting up a kubernet clustes are kops,minicube,rancher .......... etc
+ 
+ 
+below three command only in masternode,------ but sir said to run on both nodes
+ mkdir -p $HOME/.kube       #This directory is used to store the Kubernetes configuration file (config) that allows kubectl to interact with the cluster.
   sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
   sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+##the above command used for.  After initializing the cluster with kubeadm, you need to configure your local kubectl CLI to connect and manage the cluster. 
+These commands set up the kubectl configuration in the user's home directory, ensuring seamless interaction with the cluster.
 
 
 
 Flanel 
 kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+
+What Happens After Running This Command?
+Flannel's components (e.g., daemonset, configmap) are deployed to your Kubernetes cluster.
+All nodes in your cluster will establish pod networking using Flannel.
+Once successfully applied, pods across nodes can communicate with each other seamlessly.
