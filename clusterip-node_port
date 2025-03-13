@@ -1,0 +1,64 @@
+[root@master ~]# cat svc_clusterip.yaml  --------------yaml for clusterip creation
+apiVersion: v1
+kind: Service
+metadata:
+  name: myapp-service
+spec:
+  selector:
+    app: myapp
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+
+[root@master ~]# k create -f svc_clusterip.yaml -n besant
+service/myapp-service created
+[root@master ~]#
+[root@master ~]#
+[root@master ~]# k get svc -n besant
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+myapp-service   ClusterIP   10.111.235.83   <none>        80/TCP    7s
+[root@master ~]#
+
+[root@master ~]# k get svc -n besant
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+myapp-service   ClusterIP   10.111.235.83   <none>        80/TCP    7s
+[root@master ~]#
+[root@master ~]#
+[root@master ~]# curl 10.111.235.83
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<a href="http://nginx.com/">nginx.com</a>.</p>
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+
+
+------------------------------------------------------------------------------node-port-----------------------------------------------------------
+cat svc_Hard_code_NodePort.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: hc-myapp-service
+spec:
+  selector:
+    app: myapp
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 30007   ------------if you didn't mention this line by default it assigns port in range[30000-32767]
+  type: NodePort
+
+[root@master ~]# k create -f svc_Hard_code_NodePort.yaml -n besant
+service/hc-myapp-service created
+[root@master ~]# k get svc -n besant
+NAME               TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+clmyapp-service    ClusterIP      10.106.100.85    <none>        80/TCP         3m16s
+hc-myapp-service   NodePort       10.108.228.220   <none>        80:30007/TCP   7s
+lbmyapp-service    LoadBalancer   10.109.54.159    <pending>     80:32031/TCP   6m42s
+myapp-service      NodePort       10.101.76.156    <none>        80:30327/TCP   12m
+[root@master ~]#
